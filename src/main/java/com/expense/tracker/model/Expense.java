@@ -7,7 +7,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "expenses")
+@Table(name = "expenses",
+        indexes = @Index(name = "idx_expense_date",columnList = "expense_date"),
+        uniqueConstraints = @UniqueConstraint(columnNames = "description")
+)
 public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -22,8 +25,16 @@ public class Expense {
     @Column(name = "expense_date", columnDefinition = "DATE")
     private LocalDate date;
 
-    @Column(name = "category")
-    private String category;
+    @ManyToOne(
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST,CascadeType.MERGE}
+    )
+    @JoinColumn(
+            name = "category_id",
+            nullable = true,
+            foreignKey = @ForeignKey(name = "fk_expense_category")
+    )
+    private Category category;
 
     //Getters
     public long getId() {
@@ -35,7 +46,7 @@ public class Expense {
     public LocalDate getDate(){
         return date;
     }
-    public String getCategory(){
+    public Category getCategory(){
         return category;
     }
     public BigDecimal getAmount(){
@@ -55,7 +66,7 @@ public class Expense {
         this.description = description;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 
@@ -66,7 +77,7 @@ public class Expense {
     //Constructors
     public Expense(){}
 
-    public Expense(BigDecimal amount,String description,LocalDate date, String category){
+    public Expense(BigDecimal amount,String description,LocalDate date, Category category){
         this.amount = amount;
         this.description = description;
         this.date = date;
