@@ -1,8 +1,6 @@
 package com.expense.tracker.model;
 
 import jakarta.persistence.*;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -13,7 +11,7 @@ import java.time.LocalDate;
 )
 public class Expense {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Column(name = "amount", precision = 10, scale = 2)
