@@ -19,4 +19,8 @@ public interface ExpenseRepository extends JpaRepository<Expense,Long> {
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.category.id = ?1")
     BigDecimal getTotalAmountByCategory(Long categoryId);
 
+    @Query("SELECT e FROM Expense e")
+    List<Expense> getAllExpenses();
+
+
 }
