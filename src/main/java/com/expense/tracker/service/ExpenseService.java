@@ -75,6 +75,10 @@ public class ExpenseService {
         return expenseRepository.getTotalAmountByCategory(categoryId);
     }
 
+    public List<Expense> getAllExpenses() {
+        return expenseRepository.getAllExpenses();
+    }
+
     private ExpenseDto convertEntityToDTO(Expense expense){
         ExpenseDto expenseDto = new ExpenseDto();
         BeanUtils.copyProperties(expense,expenseDto);
