@@ -1,84 +1,70 @@
 package com.expense.tracker.service;
-
-import com.expense.tracker.DTO.ExpenseDto;
 import com.expense.tracker.model.Expense;
+import com.expense.tracker.model.Category;
+import com.expense.tracker.model.ExpenseRequest;
 import com.expense.tracker.repository.ExpenseRepository;
-import org.springframework.beans.BeanUtils;
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerTemplateAvailabilityProvider;
+import com.expense.tracker.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class ExpenseService {
-    private ExpenseRepository expenseRepository;
 
-    public ExpenseService(ExpenseRepository expenseRepository){
-        this.expenseRepository = expenseRepository;
+    private final ExpenseRepository repository;
+    private final CategoryRepository categoryRepository;
+
+    public ExpenseService(ExpenseRepository repository, CategoryRepository categoryRepository) {
+        this.repository = repository;
+        this.categoryRepository = categoryRepository;
     }
 
-    public ExpenseDto saveExpense(ExpenseDto expenseDto){
+    public List<Expense> getAllExpenses() {
+        return repository.findAll();
+    }
+
+    public Optional<Expense> getExpenseById(Long id) {
+        return repository.findById(id);
+    }
+
+    public Expense saveExpense(Expense expense) {
+        if (expense.getCategory() != null && expense.getCategory().getName() != null) {
+            String categoryName = expense.getCategory().getName();
+            Category category = categoryRepository.findByName(categoryName);
+            if (category == null) {
+                category = new Category();
+                category.setName(categoryName);
+                category = categoryRepository.save(category);
+            }
+            expense.setCategory(category);
+        }
+        return repository.save(expense);
+    }
+
+    public Expense saveExpenseFromRequest(ExpenseRequest request) {
+        Category category = categoryRepository.findByName(request.getCategory());
+        if (category == null) {
+            category = new Category();
+            category.setName(request.getCategory());
+            category = categoryRepository.save(category);
+        }
+
         Expense expense = new Expense();
-        BeanUtils.copyProperties(expenseDto,expense);
+        expense.setDescription(request.getDescription());
+        expense.setAmount(request.getAmount());
+        expense.setDate(request.getDate());
+        expense.setCategory(category);
 
-        if(Objects.nonNull(expenseDto.getCategoryId())){
-            if(expenseRepository.getTotalAmountByCategory(expenseDto.getCategoryId())==null){
-                throw new IllegalArgumentException("Category with given ID does not exist");
-            }
-        }
-        Expense savedExpense = expenseRepository.save(expense);
-        BeanUtils.copyProperties(savedExpense,expenseDto);
-        /// To-Do : make an entity to dto converter using mapper function
-        return expenseDto;
+        return repository.save(expense);
     }
 
-    public ExpenseDto updateExpense(Long id,ExpenseDto expenseDto){
-        Expense expense = expenseRepository.findById(id)
-                .orElseThrow(() ->  new IllegalArgumentException("Expense not found with the given Id"));
-
-        BeanUtils.copyProperties(expenseDto,expense);
-
-        if(Objects.nonNull(expenseDto.getCategoryId())){
-            if(expenseRepository.getTotalAmountByCategory(expenseDto.getCategoryId()) == null){
-                throw new IllegalArgumentException("Category with given Id does not exist");
-            }
-        }
-
-        Expense updatedExpense = expenseRepository.save(expense);
-        ///  To-do : make an entity to dto converter using mapper function
-        return expenseDto;
+    public void deleteExpense(Long id) {
+        repository.deleteById(id);
     }
 
-    public void deleteExpense(Long id){
-        Expense expense = expenseRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Expense with this Id is not found"));
-
-        expenseRepository.delete(expense);
+    public List<Expense> getExpensesByCategory(String categoryName) {
+        Category category = categoryRepository.findByName(categoryName);
+        return category != null ? repository.findByCategory(category) : List.of();
     }
-
-    public List<Expense> getExpenseByCategoryId(Long categoryId){
-        /// To-do : use ExpenseDto instead of Expense and map the entity to dto while returning
-        List<Expense> expenses = expenseRepository.findByCategoryId(categoryId);
-        return expenses;
-    }
-
-    public List<Expense> getExpenseByDateRange(LocalDate startDate,LocalDate endDate){
-        List<Expense> expenses = expenseRepository.findByDateRange(startDate,endDate);
-        return expenses;
-    }
-
-    public BigDecimal getTotalAmountByCategoryId(Long categoryId){
-        return expenseRepository.getTotalAmountByCategory(categoryId);
-    }
-
-    private ExpenseDto convertEntityToDTO(Expense expense){
-        ExpenseDto expenseDto = new ExpenseDto();
-        BeanUtils.copyProperties(expense,expenseDto);
-        return expenseDto;
-    }
-
 }
