@@ -6,6 +6,7 @@ import com.expense.tracker.service.ExpenseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,6 +59,11 @@ public class ExpenseController {
     @GetMapping("/category/{category}")
     public List<Expense> getExpensesByCategory(@PathVariable String category) {
         return service.getExpensesByCategory(category);
+    }
+
+    @GetMapping("/category/totalamount/{category}")
+    public BigDecimal getTotalExpenseByCategory(@PathVariable String category) {
+        return service.getTotalExpensesByCategory(category);
     }
 }
 

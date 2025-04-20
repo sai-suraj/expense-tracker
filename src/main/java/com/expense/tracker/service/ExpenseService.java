@@ -6,6 +6,7 @@ import com.expense.tracker.repository.ExpenseRepository;
 import com.expense.tracker.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,5 +67,10 @@ public class ExpenseService {
     public List<Expense> getExpensesByCategory(String categoryName) {
         Category category = categoryRepository.findByName(categoryName);
         return category != null ? repository.findByCategory(category) : List.of();
+    }
+
+    public BigDecimal getTotalExpensesByCategory(String categoryName) {
+        BigDecimal totalExpense = categoryRepository.totalAmountByCategory(categoryName);
+        return totalExpense;
     }
 }
